@@ -9,7 +9,7 @@
 
 Further modules will be integrated as the project progresses. `compute-node-1` was set up as the primary access point towards all other Virtual Machines
 
-In the same manner, 4 of the 5 volumes described were set up and connected to `internal-file-server` to be exported as nfs:
+In the same manner, 4 of the 5 defined volumes were set up and connected to `internal-file-server` to be exported as nfs:
 
 * `userInput`: (interim) _defined space: 2.5T_ 
 * `input`: workflows, repositories and containers. _defined space: 2.5T_
@@ -28,7 +28,7 @@ While Openstack has support for creating and maintaining Kubernetes nodes, it wa
 
 These instructions apply to all Virtual Machines / Instances
 
-### To install Kubernetes on a Linux Machine and add repositories/libraries ([source](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/)) :
+#### To install Kubernetes on a Linux Machine and add repositories/libraries ([source](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/)) :
 ```bash
 #curl -L -s https://dl.k8s.io/release/stable.txt => v1.33  
 sudo apt-get install curl ca-certificates apt-transport-https  -y  
@@ -42,8 +42,12 @@ sudo apt install kubeadm kubelet kubectl -y
 
 sudo apt-mark hold kubeadm kubelet kubectl #mark to avoid updates. Let's use this version as it comes
 ```
+```bash
+# Check installation via
+kubectl version
+```
 
-### To install a container environment over which the Kubernetes pods will work (found in the instructions for [installing `kubeadm`](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/) and [container runtimes](https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd))
+#### To install a container environment over which the Kubernetes pods will work (found in the instructions for [installing `kubeadm`](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/) and [container runtimes](https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd))
 ```bash
 # install a container environment, containerd is recommended over docker
 sudo apt update && sudo apt install -y containerd
@@ -64,19 +68,33 @@ sudo systemctl restart containerd
 
 Once Kubernetes related modules have been installed on all virtual machines, we can start forming the cluster. It works usign one or more control-planes (i.e. a director). For this case, on `compute-node-1`.
 
-* Install a CNI, which is akin to a "network manager" for the nodes. [Flannel](https://github.com/flannel-io/flannel/) was chosen, under an Apache License 2.0
+```bash
+sudo kubeadm init --pod-network-cidr=10.244.0.0/16
+```
+This operation will return an instruction that should be applied on the other virtual machines so that they join the cluster.
+
+Additionally, init output will return the following lines to add privileges to the current shell user
+```
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+```
+
+Install/apply a CNI, which is akin to a "network manager" for the nodes. [Flannel](https://github.com/flannel-io/flannel/) was chosen, under an Apache License 2.0
 ```bash
 kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
 ```
-* Remove the "taint" from the control plane so that it can run pods as well (by default, a control plane just manages the pod)
+
+Remove the "taint" from the control plane so that it can run pods (A taint is a Kubernetes definition for a restriction. By default, a control plane just manages the pods)
 ```bash
 kubectl taint nodes --all node-role.kubernetes.io/control-plane-
 ```
-* Finally, we initialize the cluster
+
+And finally, on the other nodes (a.k.a. *worker nodes*):
 ```bash
-kubeadm init
+sudo kubeadm join <ip>:6443 --token <token> --discovery-token-ca-cert-hash <hash>
 ```
-This last operation will return an instruction that should be applied on the other virtual machines so that they join the cluster.
+Whose values were provided in the outputs of the first `kubeadm init` call on the control-plane. New keys can be generated (see Kubernetes docs) if this one expires.
 
 ## Setting up Volumes and Claims
 
