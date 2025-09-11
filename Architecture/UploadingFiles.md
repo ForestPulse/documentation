@@ -1,0 +1,71 @@
+# Uploading and Downloading files
+
+As mentioned before, the server will be accessible via `ssh` over `compute-node-1`. This node will have visibility over the volumes and will be our internal method of file access, both for inputs to be submitted and workflow outputs.
+
+For security reasons, a `ssh` key needs to be provided. We suggest to use `id_25519`. There are several sources online to generate these keys. In order to have access, the public part of that key (i.e. contents of `id_ed25519.pub` file) is the one relevant for the server. **Please contact jara@uni-trier.de with said key.**
+
+The keys should look like:
+```bash
+$ cat id_ed25519.pub
+ssh-ed25519 (big_hash) (comment, most likely an username)
+```
+
+
+Once access has been given:
+
+### To upload files
+
+Volume for inputs has been mounted in the folder `/input/fp-nfs/`. Thus a simple `rsync` can be done to transfer data here. The folder has been organized as follows:
+
+```
+📂input/fp-nfs/
+┗ 📂defaults
+	┣ 📂AOI
+  	┣ 📂tree-mask
+	┣ 📂disturbances
+	┣ 📂tree-species
+	┗ [other work packages...]
+```
+
+Please make sure to place the required input files in a proper location. As an example, this has been done in tree-mask:
+```
+📂input/fp-nfs/defaults/tree-mask/
+┣ 📂legal_forest_mask
+┃	┗ 📦[tile folders, i.e. X0066_Y0053]
+┣ 📂mask_samples
+┃	┗ 📜forest_mask_samples_LCC.csv
+┣ 📂national_mask
+┃	┗ 📦[tile folders...]
+┗ 📂training_point_mask
+	┗ 📦[tile folders...]
+```
+
+Files can be uploaded via `rsync`.  Server ip will be provided when the key is sent.
+```bash
+$ rsync -avz (file_or_folder_to_be_uploaded) eouser@$ip:$folder_in_server # folder_in_server being /input/fp-nfs/...
+```
+As an example, I used a command like this one to transfer files into the server
+```bash
+$ rsync -avz legal_forest_mask/ eouser@$ip:/input/fp-nfs/defaults/tree-mask/legal_forest_mask
+```
+
+### To retrieve files
+
+Volume for outputs has been mounted in the folder `/output/fp-nfs/`. Unlike inputs, they are classified by project
+```
+📂output/fp-nfs/
+┣ 📂ForestPulse-base (default project name)
+┃	┣ 📂Product A
+┃  	┣ 📂Product B
+┃	┣ 📂Product C
+┃	┗ [other products...]
+┗ [other projects...]
+```
+
+We use `rsync` to retrieve elements in a similar fashion:
+```bash
+$ rsync -avz eouser@$ip:/output/fp-nfs/$project_name/(file_or_folder) $local_folder
+```
+
+[examples pending]
+[other visibility options pending]
