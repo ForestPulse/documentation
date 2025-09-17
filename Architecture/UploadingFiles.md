@@ -44,7 +44,10 @@ Files can be uploaded via `rsync`.  Server ip will be provided when the key is s
 ```bash
 $ rsync -avz (file_or_folder_to_be_uploaded) eouser@$ip:$destination # destination being /input/fp-nfs/...
 ```
-where `-a` is "archive mode", `-v` is verbose and `-z` is to compress file data
+where:
+* `-a` is "archive mode" (short form for `-rlptgoD`: to make it `r`ecursive; and to preserve `l`inks, `p`ermissions, modification `t`imes, `g`roups, `o`wnership, and some things regarding `D`evices that we will not be using)
+* `-v` is display results in a verbose form
+* `-z` is to compress file data for transfers
 
 As an example, I used a command like this one to transfer files into the server. Note that to transfer contents from a folder, the destination should be written without `/`.  
 ```bash
