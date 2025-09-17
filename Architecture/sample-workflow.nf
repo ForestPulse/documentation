@@ -17,9 +17,9 @@ workflow tree_species_unmixing {
     input_files
 
     main:
-    models = extract_pure(input_files)
-    | synth_library(samples.out)
-    | train_ANN(libraries.out)
+    models = extract_samples(input_files)
+    | synth_library
+    | train_ANN
 
     species_predictions = mapping(models.out, params.datacube)
 
@@ -27,7 +27,7 @@ workflow tree_species_unmixing {
     final_output = species_predictions.out
 }
 
-process extract_pure {
+process extract_samples {
     label 'tree-species'
     
     input:

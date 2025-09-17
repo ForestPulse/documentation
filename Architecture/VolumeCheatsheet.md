@@ -48,5 +48,11 @@ sudo systemctl restart autofs
 Virtual Machines should automatically catch up based on a previous autofs configuration.  
 Kubernetes may use a different method to detect volumes, namely Volume and VolumeClaim definition files already set up in the cluster. Given the ephemeral nature of pods, it should not cause an impact.
 
+## Set Permissions
+
+* on client
+
+* on server
+
 ## Potential issues:
 * check `sudo systemctl status autofs` in the client if the nfs is not recognized, an usual error is a not properly assigned host

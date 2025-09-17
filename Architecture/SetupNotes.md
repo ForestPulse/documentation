@@ -95,7 +95,7 @@ echo 'br_netfilter' | sudo tee /etc/modules-load.d/k8s.conf
 ```
 This last part is checked with `lsmod | grep br_netfilter`
 
-A final step to ensure the nodes "see" `internal-file-server" is to add the following line on the `/etc/hosts`file (put the right ip of the file server here, of course)
+A final step to ensure the nodes "see" `internal-file-server` is to add the following line on the `/etc/hosts`file (put the right ip of the file server here, of course)
 ```
 10.0.0.X internal-file-server.codede.internal fp-nfs
 ```
@@ -185,3 +185,11 @@ A brief list on what is required to integrate processes/algorithms/resources to 
 What do we need?
 * A pod or a VM image that provides a stable environment to be run
 * Additional files have been already uploaded to the server and are stored in `fp-nfs/input`
+
+## Additional Information
+
+It would be advisable to install `nano` and `tmux` on the control plane. 
+
+* `nano` is a text editor for quick fixes and useful if someone is not familiar with `vim` motions.
+
+* `tmux` is used to create sessions that persist over time, thus eliminating the need to be connected via `ssh` the entire time a process (e.g. a local Nextflow call) is being executed.

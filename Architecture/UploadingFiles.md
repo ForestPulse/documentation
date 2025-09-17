@@ -2,12 +2,12 @@
 
 As mentioned before, the server will be accessible via `ssh` over `compute-node-1`. This node will have visibility over the volumes and will be our internal method of file access, both for inputs to be submitted and workflow outputs.
 
-For security reasons, a `ssh` key needs to be provided. We suggest to use `id_25519`. There are several sources online to generate these keys. In order to have access, the public part of that key (i.e. contents of `id_ed25519.pub` file) is the one relevant for the server. **Please contact jara@uni-trier.de with said key.**
+For security reasons, a `ssh` key needs to be provided. We suggest to use `id_25519`. There are several sources online to generate these keys. In order to have access, the public part of that key (i.e. contents of `id_ed25519.pub` file) is the one relevant for the server. **Please contact jara@uni-trier.de with said key to get server access.**
 
 The keys should look like:
 ```bash
 $ cat id_ed25519.pub
-ssh-ed25519 (big_hash) (comment, most likely an username)
+ssh-ed25519 (long hash string) (comment, most likely an username)
 ```
 
 
@@ -15,7 +15,7 @@ Once access has been given:
 
 ### To upload files
 
-Volume for inputs has been mounted in the folder `/input/fp-nfs/`. Thus a simple `rsync` can be done to transfer data here. The folder has been organized as follows:
+Volume for inputs has been mounted in the folder `/input/fp-nfs/`. Thus a simple `rsync` can be invoked to transfer data here. The folder has been organized as follows:
 
 ```
 📂input/fp-nfs/
@@ -42,13 +42,19 @@ Please make sure to place the required input files in a proper location. As an e
 
 Files can be uploaded via `rsync`.  Server ip will be provided when the key is sent.
 ```bash
-$ rsync -avz (file_or_folder_to_be_uploaded) eouser@$ip:$folder_in_server # folder_in_server being /input/fp-nfs/...
+$ rsync -avz (file_or_folder_to_be_uploaded) eouser@$ip:$destination # destination being /input/fp-nfs/...
 ```
-As an example, I used a command like this one to transfer files into the server
+where `-a` is "archive mode", `-v` is verbose and `-z` is to compress file data
+
+As an example, I used a command like this one to transfer files into the server. Note that to transfer contents from a folder, the destination should be written without `/`.  
 ```bash
 $ rsync -avz legal_forest_mask/ eouser@$ip:/input/fp-nfs/defaults/tree-mask/legal_forest_mask
 ```
-
+Else, it would copy the folder inside the path (e.g. it would be transferred as `/input/.../tree-mask/legal_forest_mask/legal_forest_mask` on the case above).  
+Do add a `/` to the destination when adding files
+```bash
+rsync -avz forest_mask_samples_LCC.csv eouser@$ip:/input/fp-nfs/defaults/tree-mask/mask_samples/
+```
 ### To retrieve files
 
 Volume for outputs has been mounted in the folder `/output/fp-nfs/`. Unlike inputs, they are classified by project
