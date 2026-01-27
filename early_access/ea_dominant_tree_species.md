@@ -3,8 +3,8 @@ In diesem Layer wird deutschlandweit die dominante Baumart pro Pixel dargestellt
 Der Layer ist als klassifiziertes Raster umgesetzt. Jeder Pixel enthält einen ganzzahligen Rasterwert, der einer Baumartengruppe, der Schattenklasse oder der Bodenklasse zugeordnet ist. Die Zuordnung der Rasterwerte zu den Klassen ist in der folgenden Tabelle dargestellt:
 
 | Typ       |Baumartengruppe| Rasterwert    |Abgebildete Arten             |
-|Nadelbäume |Fichte         | 1             |Gemeine Fichte (Picea abies)  |
-|^^         |Kiefer         | 2             |Gemeine Kiefer (Pinus sylvestris)  |
-|^^         |Tanne          | 3             |Weißtanne (Abies alba)  |
-|^^         |^^             | ^^            |Küstentanne (Abies grandis)  |
+| Nadelbäume |Fichte         | 1             |Gemeine Fichte (Picea abies)  |
+| ^^         |Kiefer         | 2             |Gemeine Kiefer (Pinus sylvestris)  |
+| ^^         |Tanne          | 3             |Weißtanne (Abies alba)  |
+| ^^         |^^             | ^^            |Küstentanne (Abies grandis)  |
 
