@@ -1,3 +1,8 @@
+https://github.com/ForestPulse/ForestStructure/blob/main/README.md
+
+
+
+
 # Point cloud thinning
 ### Goals
 There are several goals of point cloud thinning:
