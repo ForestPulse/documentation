@@ -1,94 +1,195 @@
-https://github.com/ForestPulse/ForestStructure/blob/main/README.md
+## Background
 
+Airborne Laser Scanning (ALS) data in ForestPulse come from multiple sources,
+including state surveying authorities and the Federal Agency for Cartography
+and Geodesy (BKG) via the Digital Twin Germany (DigiZ-DE) initiative.
+These datasets vary in sensor type, acquisition date, flight parameters, and
+strip configuration. This leads to heterogeneous point clouds, irregular overlap
+areas, and strong variation in point density within and across flight paths.
 
+Such inconsistencies make it difficult to build robust, standardized large-scale
+processing workflows. Preprocessing is therefore a mandatory first step to
+harmonize inputs and ensure comparability of derived forest structure products
+across regions and data providers.
 
+### Data Source and Pilot Region
 
-# Point cloud thinning
-### Goals
-There are several goals of point cloud thinning:
-+ Removal of point density heterogeneities, which are a result of the data collection (swath overlaps, scanning patterns)
-+ Reduction of the data amount for more efficient processing, while keeping all the required structural information
-+ Reduction of the point density for the public dataset with 10 points per m² (BKG)
+The original project plan expected nationwide ALS data from BKG DigiZ-DE, with
+deliveries starting in late 2024. Due to delays, we used openly available ALS
+data from Thüringia as the pilot dataset. These data were downloaded from the
+official Thüringia state geoportal and stored on the GWDG HPC infrastructure.
 
-### Random thinning
-Points are subsetted randomly.
+The Thüringia dataset comprised **16,945 tiles** of 1 km² each, with an average
+point density of ~33 pts/m². It served as the primary testbed for developing,
+validating, and benchmarking the full preprocessing workflow. 
+https://github.com/ForestPulse/ForestStructure
 
-**Considerations:** 
-+ Very simple
-+ Preserves the vertical frequency distribution of points
-+ No horizontal homogenization of point density
-+ No target point density
-+ Information loss in areas with low sampling density
+The validated workflow is designed to be transferable to other German federal
+states once DigiZ-DE data become available.
 
+---
 
-### Grid-based thinning (xy)
-A horizontal grid of a specific resolution (e.g. 1 m x 1 m) is overlayed on the point cloud. A given maximum target point density per area is provided. In all grid cells with more points than the target density, random points are removed until the target point density is reached.
+## Preprocessing
 
-**Considerations:** 
-+ Homogenizes the point cloud horizontally
-+ Has a specific target point density (per area)
-+ Slightly alters the vertical frequency distribution of points
-+ In open areas, single returns are predominant, while in vegetated areas, multiple returns are predominant. By keeping a fixed number of points per grid cell, more returns are being removed from the vegetated areas.
+Preprocessing transforms raw, heterogeneous ALS tiles into a consistent,
+analysis-ready point cloud dataset. It reduces data volume, removes noise,
+standardizes point density and height reference, and ensures spatial alignment
+with the FORCE (https://force-eo.readthedocs.io) Datacube grid used across all ForestPulse layers.
 
-**Implementations:** 
+The full preprocessing chain runs on the **GWDG HPC** using SLURM batch jobs,
+with tools including PDAL, R (`lasR`, `lidR`), and Bash.
 
-Grid-based thinning is available in R via [slidartools::thin_point_cloud_xyz](https://github.com/nikoknapp/slidaRtools/blob/master/R/thin_point_cloud_xyz_function.R) with dim="xy".
+### Preprocessing Steps
 
-### Voxel-based thinning (xyz)
-A 3D grid of a specific resolution (e.g. 1 m x 1 m x 1 m) is overlayed on the point cloud. A given maximum target point density per volume is provided. In all voxels with more points than the target density, random points are removed until the target point density is reached.
+#### 1. Denoising and Outlier Removal
 
-**Considerations:**  
-+ Homogenizes the point cloud horizontally
-+ Homogenizes the point cloud vertically
-+ Has a specific target point density (per volume)
-+ Strongly alters the vertical frequency distribution of points
-+ In upper canopy layers the point density is higher than in lower layers due to the occlusion of laser beams. By keeping a fixed number of points per voxel, more of the maybe redundant points in the upper layers are being removed, while the rarer points in the understory are kept.
-+ These are desired properties for single tree detection, by making the overstory more efficient to process, due to less points, while not losing the understory
-+ These are undesired properties for plant area density estimation using the MacArthur-Horn-method and any quantitative analysis of canopy layering
+Raw ALS data often contain isolated noise points from atmosphere, water
+surfaces, or sensor artifacts. These outliers are removed before any further
+processing to prevent contamination of classification and normalization results.
 
-**Implementations:** 
+**Tool:** PDAL (`filters.outlier`)
 
-Voxel-based thinning is available in R via [slidartools::thin_point_cloud_xyz](https://github.com/nikoknapp/slidaRtools/blob/master/R/thin_point_cloud_xyz_function.R) with dim="xyz".
+---
+#### 2. Reprojection
 
-### Pulse-based thinning
+The Thüringia ALS tiles are delivered in **UTM Zone 32N (EPSG:25832)**. The
+FORCE Datacube used for ForestPulse is defined in **ETRS89 / LAEA Europe
+(EPSG:3035)**. Reprojection is required to align the point cloud data with
+the FORCE grid before metric extraction and raster generation.
 
-A horizontal grid of a specific resolution (e.g. 1 m x 1 m) is overlayed on the point cloud. A given maximum target pulse density per area is provided. Each return is assigned to a pulse via its gpstime attribute. In all grid cells with more first returns than the target density, random pulses, i.e. the first returns and all other returns belonging to the same pulses, are removed until the target pulse density is reached.
+No vertical datum transformation is needed. Both CRS are based on the ETRS89
+reference framework, so a horizontal coordinate transformation is sufficient.
 
-**Considerations:**  
-+ Homogenizes the point cloud horizontally
-+ Preserves the vertical frequency distribution of points
-+ Has a specific target pulse density (per area)
-+ In open areas, single returns are predominant, while in vegetated areas, multiple returns are predominant. By keeping a fixed number of pulses per grid cell with all their returns, this intrinsic structural heterogeneity is preserved.
-+ These are desired properties for plant area density estimation using the MacArthur-Horn-method and any quantitative analysis of canopy layering
-+ The method relies on a unique gpstime per pulse, which is not given in the case of single-photon-counting-lidar, hence not applicable to such data.
+**Tool:** PDAL (`filters.reprojection`)
 
-**Implementations:** 
-
-Pulse-based thinning is available in R via the following function, which makes use of several lidR functions:
-```R
-# Function for thinning by pulse, i.e., it will assign each pulse 
-# to a grid cell based on the xy-position of its first return and then
-# it will randomly discard pulses (i.e., all returns of a pulse) until 
-# a desired pulse density is reached
-homogenize_pc_by_pulse <- function(las, density = 4, res= 1){
-  require(lidR)
-  # Package required for the pipe operator %>%
-  require(magrittr)
-  # If the input is not a LAS object, convert it to LAS
-  if(!("LAS" %in% class(las))){
-    las <- LAS(las)
-  }
-  # Give each pulse an ID
-  las_pulse <- lidR::retrieve_pulses(las)
-  # Thin out the first returns to the desired target density
-  las_homogenized_pulses <- las_pulse %>%
-    lidR::filter_first(.) %>%
-    lidR::decimate_points(.,lidR::homogenize(density, res = res))
-  # Subset only the points that belong to the selected pulses, based on pulse ID
-  las_homogenized_points <- las_pulse %>%
-    lidR::filter_poi(., pulseID %in% las_homogenized_pulses@data$pulseID)
-  return(las_homogenized_points)
+```bash
+# Example PDAL reprojection stage
+{
+  "type": "filters.reprojection",
+  "in_srs": "EPSG:25832",
+  "out_srs": "EPSG:3035"
 }
 ```
 
+---
+#### 3. Retiling
 
+Because UTM and LAEA use different grid orientations, a point-level reprojection
+alone produces tile boundaries that are oblique to the FORCE Datacube grid.
+Retiling reorganizes reprojected points into new output tiles strictly aligned
+with FORCE cube extents.
+
+Reprojection and retiling are performed together in a single python script with PDAL pipeline to
+avoid redundant read/write cycles.
+
+**Tool:** PDAL (`writers.las` with spatial filtering per tile)
+
+> See `scripts/reproject_retile.sh` for the batch SLURM implementation.
+
+---
+#### 4. Ground Classification
+
+Ground classification separates ground returns from vegetation, buildings, and
+other above-ground objects. An accurate ground model is required for height
+normalization in the next step.
+
+We use the **Progressive Morphological Filter (PMF)** or **Cloth Simulation
+Filter (CSF)** depending on terrain complexity.
+
+**Tool:** PDAL (`filters.pmf`, `filters.csf`) or R `lidR::classify_ground()`
+
+```r
+# Example in lidR
+las <- classify_ground(las, algorithm = csf())
+```
+#### 5. Point Thinning (Density Standardization)
+
+ALS data from different acquisition campaigns often have varying point
+densities. Thinning standardizes the density across the dataset to a target
+value (e.g., 10 pts/m²), reducing processing load and ensuring that derived
+metrics are comparable between tiles and regions.
+
+**Tool:** PDAL (`filters.relaxationdartthrowing`, `filters.sample`) or
+
+R `slidartools::thin_point_cloud_xyz` (https://github.com/nikoknapp/slidaRtools/blob/master/R/thin_point_cloud_xyz_function.R)
+
+R `lidR::decimate_points()`
+
+```r
+# Homogeneous thinning to 10 pts/m²
+las <- decimate_points(las, homogenize(10, res = 1))
+```
+
+---
+
+#### 6. Height Normalization
+
+Height normalization subtracts the ground surface elevation from each point,
+converting ellipsoidal or orthometric heights to **height above ground (HAG)**.
+This is a prerequisite for computing canopy height, crown metrics, and
+vertical structure attributes.
+
+**Tool:** PDAL (`filters.hag_delaunay`, `filters.hag_nn`, `filters.hag_dem`)
+
+**Tool:** R `lidR::normalize_height()` or `lasR` pipelines
+
+```r
+las <- normalize_height(las, algorithm = tin())
+```
+
+---
+
+#### 7. COPC Conversion
+
+Final preprocessed tiles are written in **Cloud Optimized Point Cloud (COPC)**
+format. COPC enables efficient spatial querying and streaming, which is
+essential for large-scale catalog-based processing on the HPC.
+
+**Tool:** PDAL (`writers.copc`)
+
+---
+
+### Preprocessing Workflow Summary
+
+Raw ALS tiles (LAZ, EPSG:25832)
+│
+▼
+Denoising / Outlier Removal
+│
+▼
+Reprojection + Retiling (EPSG:25832 → EPSG:3035, FORCE grid)
+│
+▼
+Ground Classification
+│
+▼
+Point Thinning (density standardization)
+│
+▼
+Height Normalization (HAG)
+│
+▼
+COPC Conversion
+│
+▼
+Analysis-ready tiles (COPC, EPSG:3035)
+
+
+---
+
+## Infrastructure
+
+All preprocessing runs on the **GWDG HPC** cluster using the SLURM scheduler.
+Tiles are processed in parallel using array jobs. Scripts are organized under
+`scripts/preprocessing/`.
+
+| Resource | Details |
+|---|---|
+| HPC system | GWDG (`medium96s` / `standard96` partitions) |
+| Storage | Project account on `/scratch` |
+| Parallelization | SLURM array jobs, one tile per task |
+| Primary tools | PDAL, R (`lidR`, `lasR`), Bash |
+| Input format | LAZ (EPSG:25832) |
+| Output format | COPC (EPSG:3035) |
+
+---
