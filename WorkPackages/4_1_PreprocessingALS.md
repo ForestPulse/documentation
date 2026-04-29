@@ -82,8 +82,6 @@ with FORCE cube extents.
 Reprojection and retiling are performed together in a single python script with PDAL pipeline to
 avoid redundant read/write cycles.
 
-**Tool:** PDAL (`writers.las` with spatial filtering per tile)
-
 > See `scripts/reproject_retile.sh` for the batch SLURM implementation.
 
 ---
