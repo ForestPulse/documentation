@@ -82,7 +82,7 @@ with FORCE cube extents.
 Reprojection and retiling are performed together in a single python script with PDAL pipeline to
 avoid redundant read/write cycles.
 
-> See `scripts/reproject_retile.sh` for the batch SLURM implementation.
+> See `ForestStructure/processing_slurm.sh` for the batch SLURM implementation. https://github.com/ForestPulse/ForestStructure/blob/main/processing_slurm.sh
 
 ---
 #### 4. Ground Classification
@@ -140,7 +140,7 @@ las <- normalize_height(las, algorithm = tin())
 #### 7. COPC Conversion
 
 Final preprocessed tiles are written in **Cloud Optimized Point Cloud (COPC)**
-format. COPC enables efficient spatial querying and streaming, which is
+https://copc.io/ format. COPC enables efficient spatial querying and streaming, which is
 essential for large-scale catalog-based processing on the HPC.
 
 **Tool:** PDAL (`writers.copc`)
@@ -149,35 +149,16 @@ essential for large-scale catalog-based processing on the HPC.
 
 ### Preprocessing Workflow Summary
 
-Raw ALS tiles (LAZ, EPSG:25832)
-│
-▼
-Denoising / Outlier Removal
-│
-▼
-Reprojection + Retiling (EPSG:25832 → EPSG:3035, FORCE grid)
-│
-▼
-Ground Classification
-│
-▼
-Point Thinning (density standardization)
-│
-▼
-Height Normalization (HAG)
-│
-▼
-COPC Conversion
-│
-▼
-Analysis-ready tiles (COPC, EPSG:3035)
+Raw ALS tiles (LAZ, EPSG:25832) --> Denoising / Outlier Removal --> Reprojection + Retiling (EPSG:25832 → EPSG:3035, FORCE grid) --> Ground Classification
+--> Point Thinning (density standardization) --> Height Normalization (HAG) --> COPC Conversion
 
+----> Analysis-ready tiles (COPC, EPSG:3035)
 
 ---
 
 ## Infrastructure
 
-All preprocessing runs on the **GWDG HPC** cluster using the SLURM scheduler.
+All preprocessing runs on the **GWDG HPC** cluster https://gwdg.de/en/hpc/ using the SLURM scheduler.
 Tiles are processed in parallel using array jobs. Scripts are organized under
 `scripts/preprocessing/`.
 
