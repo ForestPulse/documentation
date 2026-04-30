@@ -18,16 +18,36 @@ In ForestPulse, the following forest structure metrics are computed nationwide:
 
 ## Forest Metrics
 
-### 1. Canopy Cover (Überschirmungsgrad)
+## 1. Canopy Cover (Überschirmungsgrad)
 
-Canopy cover (CC, also crown closure) is defined as the percentage of ground covered by individual tree crowns, measured as the vertical projection onto a horizontal plane (van Laar and Akça, 2007).
+Canopy cover (CC, also crown closure) is defined as the percentage of ground
+covered by individual tree crowns, measured as the vertical projection onto a
+horizontal plane (van Laar and Akça, 2007).
 
-CC derived from LiDAR is the fraction of returns that intersect the canopy. In the processing script https://github.com/ForestPulse/ForestStructure/blob/main/metrics_R/forestMetrics_subtile.R, CC is implemented as the proportion of points with height ≥ 2.0 m — a threshold that distinguishes tree vegetation from ground returns or low shrubs (Jennings et al., 1999).
+CC derived from LiDAR is the fraction of returns that intersect the canopy.
+In the [processing script](https://github.com/ForestPulse/ForestStructure/blob/main/metrics_R/forestMetrics_subtile.R),
+CC is implemented as the proportion of points with height ≥ 2.0 m, a threshold
+that distinguishes tree vegetation from ground returns or low shrubs (Jennings et al., 1999).
 
-- **High CC** (close to 1.0): closed canopy, little open ground
-- **Low CC**: open forest or canopy gaps
+CC is formally expressed as:
 
-This ratio method is an accepted proxy for the Beer–Lambert law approach to canopy transmittance: it measures the probability that a LiDAR pulse is intercepted by vegetation above 2 m. CC is a key structural attribute influencing understory light availability, microclimate, wildlife habitat, and stand stocking density.
+$$CC = \frac{1}{N} \sum_{i=1}^{N} \mathbf{1}(h_i \geq 2.0)$$
+
+Where:
+- $N$ = total number of LiDAR returns within the pixel (10 m × 10 m cell)
+- $h_i$ = height of the $i$-th return above ground
+- $\mathbf{1}(h_i \geq 2.0)$ = indicator function equal to 1 if return height meets the canopy threshold, 0 otherwise
+
+| CC value | Interpretation |
+|----------|---------------|
+| Close to 1.0 | Closed canopy, little open ground |
+| Close to 0.0 | Open forest or canopy gaps |
+
+This ratio method is an accepted proxy for the Beer–Lambert law approach to
+canopy transmittance: it measures the probability that a LiDAR pulse is
+intercepted by vegetation above 2 m. CC is a key structural attribute
+influencing understory light availability, microclimate, wildlife habitat,
+and the stocking density.
 
 ---
 
