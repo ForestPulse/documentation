@@ -13,12 +13,13 @@ In ForestPulse, the following forest structure metrics are computed nationwide:
 | Vertical structure / layering | Bestandesschichtung |
 | Growing stock volume | Bestandesvorrat |
 | Biomass | Biomasse |
+| Basal Area | Grundfläche |
 
 ---
 
 ## Forest Metrics
 
-## 1. Canopy Cover (Überschirmungsgrad)
+### 1. Canopy Cover (Überschirmungsgrad)
 
 Canopy cover (CC, also crown closure) is defined as the percentage of ground
 covered by individual tree crowns, measured as the vertical projection onto a
@@ -78,11 +79,35 @@ VCI captures the 3D structural diversity of the forest. High VCI indicates multi
 
 ### 4. Growing Stock Volume (Bestandesvorrat)
 
-Growing stock volume estimates total tree volume in m³/ha.
+Growing stock volume (GSV) is defined as the total above-ground stem volume of living trees per unit land area (m³/ha). It is a fundamental forest inventory variable used to assess timber resources, carbon stocks, and stand productivity.
 
-**Inputs:** ALS-derived metrics (e.g. height percentiles, point density)  
-**Reference data:** BWI (Bundeswaldinventur) field plots  
-**Modelling approach:** Parametric regression (linear or multiple regression) using BWI plots as calibration data.
+At tree level, stem volume is estimated from DBH and height using allometric taper equations. At stand level, GSV is the sum of individual tree volumes per hectare:
+
+$$GSV_{stand} = \frac{\sum_{i=1}^{n} V_{tree,i}}{A}$$
+
+Where:
+- $V_{tree,i}$ = stem volume of the $i$-th tree (m³), derived from allometric equations
+- $n$ = number of trees in the sampled area
+- $A$ = plot or pixel area (ha)
+
+**LiDAR-based estimation:** GSV is estimated using the Area-Based Approach (ABA), where ALS-derived height and density metrics serve as predictors in a parametric regression calibrated against BWI field plot measurements:
+
+$$GSV = a + b \cdot p_{95} + c \cdot \bar{h} + d \cdot CC$$
+
+Where:
+- $p_{95}$ = 95th percentile of return heights (m)
+- $\bar{h}$ = mean return height (m)
+- $CC$ = canopy cover fraction (proportion of returns ≥ 2.0 m)
+- $a, b, c, d$ = regression coefficients calibrated from BWI plots
+
+In R, a typical pixel-level implementation is:
+
+```r
+GSV_predicted = a + b * quantile(Z, 0.95) + c * mean(Z) + d * sum(Z >= 2.0) / length(Z)
+```
+
+Coefficients are calibrated against BWI plot measurements. This approach is operationally established — for example, Norway's national forest inventory uses ALS-based GSV models achieving volume errors of approximately 10–15% at stand level.
+
 
 ---
 
@@ -100,6 +125,37 @@ This follows the **Area-Based Approach (ABA)** in LiDAR forestry: statistical me
 - **Canada and Finland**: ALS-based biomass integrated into national inventory updates
 
 LiDAR metrics such as p95, mean height, and canopy density are well-established predictors of AGB, with calibrated models typically achieving R² values of 0.7–0.9.
+
+---
+
+### 5. Basal Area (Grundfläche)
+
+Basal area (BA) is defined as the cross-sectional area of a tree stem at breast height (1.3 m above ground). At stand level, it is expressed as the sum of all stem cross-sectional areas per unit land area (m²/ha). It is a widely used measure of stand density and stocking, closely related to timber volume and productivity.
+
+BA for a single tree is calculated from its diameter at breast height (DBH):
+
+$$BA_{tree} = \pi \times \left(\frac{DBH}{2}\right)^2$$
+
+Stand-level basal area is then:
+
+$$BA_{stand} = \frac{\sum_{i=1}^{n} BA_{tree,i}}{A}$$
+
+Where:
+- $DBH$ = diameter at breast height (m)
+- $n$ = number of trees in the sampled area
+- $A$ = plot or pixel area (ha)
+
+**LiDAR-based estimation:** Since LiDAR does not directly measure DBH, BA is estimated using the Area-Based Approach (ABA) — a parametric regression model linking ALS-derived height and density metrics to field-measured BA from BWI reference plots:
+
+$$BA = f(p_{95},\ \bar{h},\ CC,\ \sigma_h)$$
+
+In R, a typical pixel-level predictor set is computed as:
+
+```r
+BA_predicted = a + b * quantile(Z, 0.95) + c * mean(Z) + d * sum(Z >= 2.0) / length(Z)
+```
+
+Coefficients are calibrated against BWI plot measurements.
 
 ---
 
