@@ -102,7 +102,7 @@ Where:
 In R, a typical pixel-level implementation is:
 
 ```r
-GSV_predicted = 3.4838 * meanH^1.3921  * density^-0.76431
+GSV = 3.4838 * meanH^1.3921  * density^-0.76431
 ```
 
 Coefficients are calibrated against BWI plot measurements.
@@ -112,18 +112,22 @@ Coefficients are calibrated against BWI plot measurements.
 
 ### 5. Above-Ground Biomass (Biomasse)
 
-The biomass model (`biomass_model`) is an area-based regression model estimating forest above-ground biomass (AGB, Mg/ha) from LiDAR metrics. A general linear form is: (example, not yet determined)
+The biomass model (`biomass_model`) is an area-based regression model estimating forest above-ground biomass (AGB, Mg/ha) from LiDAR metrics. A general linear form is:
 
-$$AGB = A + B \cdot p95 + C \cdot \text{mean} + D \cdot \text{std}$$
+$$AGB = a \cdot \bar{h}^b \cdot \rho^c$$
 
-Coefficients A, B, C, D are derived from calibration against field reference data (default: B = 1, others = 0).
+Where:
+- $\bar{h}$ = mean height of plot based on Canopy height Model (m)
+- $\rho$ = density of tree species
+- $a, b, c$ = regression coefficients calibrated from BWI plots
 
-This follows the **Area-Based Approach (ABA)** in LiDAR forestry: statistical metrics are derived over an area (plot or raster cell) and regressed against forest inventory variables. This approach is operationally established — for example:
+In R, a typical pixel-level implementation is:
 
-- **Norway**: nationwide ALS data combined with NFI plots; achieves ~10–15% volume error at stand level
-- **Canada and Finland**: ALS-based biomass integrated into national inventory updates
+```r
 
-LiDAR metrics such as p95, mean height, and canopy density are well-established predictors of AGB, with calibrated models typically achieving R² values of 0.7–0.9.
+AGB = 4.988 * meanH^1.343 * dens^0.3047
+
+```
 
 ---
 
@@ -144,14 +148,20 @@ Where:
 - $n$ = number of trees in the sampled area
 - $A$ = plot or pixel area (ha)
 
-**LiDAR-based estimation:** Since LiDAR does not directly measure DBH, BA is estimated using the Area-Based Approach (ABA) — a parametric regression model linking ALS-derived height and density metrics to field-measured BA from BWI reference plots:
+**LiDAR-based estimation:** Since LiDAR does not directly measure DBH, BA is estimated using the Area-Based Approach (ABA), a parametric regression model linking ALS-derived height and density metrics to field-measured BA from BWI reference plots:
 
-$$BA = f(p_{95},\ \bar{h},\ CC,\ \sigma_h)$$
+$$BA = a \cdot \bar{h}^b \cdot \rho^c$$
+
+Where:
+- $\bar{h}$ = mean height of plot based on Canopy height Model (m)
+- $\rho$ = density of tree species
+- $a, b, c$ = regression coefficients calibrated from BWI plots
 
 In R, a typical pixel-level predictor set is computed as:
 
 ```r
-BA_predicted = a + b * quantile(Z, 0.95) + c * mean(Z) + d * sum(Z >= 2.0) / length(Z)
+BA = 2.1713 * meanH^0.75521 * dens^-0.71128
+
 ```
 
 Coefficients are calibrated against BWI plot measurements.
