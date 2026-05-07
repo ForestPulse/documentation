@@ -92,18 +92,17 @@ Where:
 
 **LiDAR-based estimation:** GSV is estimated using the Area-Based Approach (ABA), where ALS-derived height and density metrics serve as predictors in a parametric regression calibrated against BWI field plot measurements:
 
-$$GSV = a + b \cdot p_{95} + c \cdot \bar{h} + d \cdot CC$$
+$$GSV = a * meanH^b * dens^c$$
 
 Where:
-- $p_{95}$ = 95th percentile of return heights (m)
-- $\bar{h}$ = mean return height (m)
-- $CC$ = canopy cover fraction (proportion of returns ≥ 2.0 m)
-- $a, b, c, d$ = regression coefficients calibrated from BWI plots
+- $meanH$ = mean height of plot based on Canopy height Model (m)
+- $dens$ = density of tree species
+- $a, b, c$ = regression coefficients calibrated from BWI plots
 
 In R, a typical pixel-level implementation is:
 
 ```r
-GSV_predicted = a + b * quantile(Z, 0.95) + c * mean(Z) + d * sum(Z >= 2.0) / length(Z)
+GSV_predicted = 3.4838 * meanH^1.3921  * dens^-0.76431
 ```
 
 Coefficients are calibrated against BWI plot measurements. This approach is operationally established — for example, Norway's national forest inventory uses ALS-based GSV models achieving volume errors of approximately 10–15% at stand level.
