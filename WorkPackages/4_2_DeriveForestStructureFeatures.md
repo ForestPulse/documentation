@@ -1,6 +1,6 @@
 ## Background
 
-For the ForestPulse project, HAWK's contribution in Work Package 4.2 focused on establishing the methodological basis for area-based derivation of forest structure attributes using the preprocessed ALS data from Work Package 4.1. The ALS data were harmonized, reprojected to EPSG:3035, and retiled into 1 km × 1 km subtiles. Each subtile fits perfectly within a FORCE cube tile (30 km × 30 km), requiring exactly 900 subtiles to cover each FORCE cube domain.
+For the ForestPulse project, Work Package 4.2 focused on establishing the methodological basis for area-based derivation of forest structure attributes using the preprocessed ALS data from Work Package 4.1. The ALS data were harmonized, reprojected to EPSG:3035, and retiled into 1 km × 1 km subtiles. Each subtile fits perfectly within a FORCE cube tile (30 km × 30 km), requiring exactly 900 subtiles to cover each FORCE cube domain.
 
 Working at the FORCE cube level as a unit base enables precise spatial alignment with Sentinel-2 optical imagery within the FORCE framework. This 30 km × 30 km Sentinel-2 data can be used for modeling alongside LiDAR-derived data. Between LiDAR acquisition dates, Sentinel-2 (with its 2–3-day temporal resolution) can serve as an alternative data source for continuous forest monitoring. Sentinel-2 has a 10 m pixel spatial resolution, giving each FORCE cube 3000 × 3000 pixels. To achieve pixel-level coincidence between LiDAR and Sentinel-2, forest metrics are computed from the LiDAR data at 10 m resolution.
 
