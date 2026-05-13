@@ -144,7 +144,7 @@ where:
 
 The coefficients were fitted to the following values:
 
-$$a = 2.1713 \\ b = 0.75521 \\ c = -0.71128$$
+$$a = 2.1713, b = 0.75521, c = -0.71128$$
 
 ---
 
