@@ -8,12 +8,12 @@ In ForestPulse, the following forest structure metrics are computed nationwide:
 
 | Metric | German | Unit |
 |---|---|---|
-| Canopy cover | Überschirmungsgrad | $%$ |
-| Top height | Bestandesoberhöhe | m |
+| Canopy cover | Überschirmungsgrad | % |
+| Top height | Bestandesoberhöhe | $m$ |
 | Vertical structure / layering | Bestandesschichtung | (no unit) |
-| Growing stock volume | Bestandesvorrat | m$^3$ / ha |
+| Growing stock volume | Bestandesvorrat | $m^3$ / ha |
 | Biomass | Biomasse | $t$ / ha |
-| Basal Area | Grundfläche | m$^2$ / ha |
+| Basal Area | Grundfläche | $m^2$ / ha |
 
 ---
 
@@ -88,7 +88,7 @@ At tree level, stem volume is estimated from DBH and height using allometric tap
 $$GSV = a \cdot h ^b \cdot \rho^c$$
 
 where:
-- $h$ = mean height of Canopy height Model (m)
+- $h$ = mean height of canopy height model (m)
 - $\rho$ = dry wood density of tree species
 - $a, b, c$ = regression coefficients 
 
@@ -105,7 +105,7 @@ Above-Ground Biomass was calculated similarly to GSV, fitting a power law model 
 $$AGB = a \cdot h ^b \cdot \rho^c$$
 
 where:
-- $h$ = mean height of Canopy height Model (m)
+- $h$ = mean height of canopy height model (m)
 - $\rho$ = dry wood density of tree species
 - $a, b, c$ = regression coefficients 
 
@@ -130,7 +130,7 @@ $$BA_{stand} = \frac{\sum_{i=1}^{n} BA_{i}}{A}$$
 Where:
 - $DBH$ = diameter at breast height (m)
 - $n$ = number of trees in the sampled area
-- $BA_{i} = BA_{tree}$ for the i-th tree
+- $BA_{i} = BA_{tree}$ for the $i$-th tree
 - $A$ = plot or pixel area (ha)
 
 **LiDAR-based estimation:** BA is estimated using the Area-Based Approach (ABA). A parametric regression model links ALS-derived height and density metrics to field-measured BA from BWI reference plots:
@@ -138,13 +138,13 @@ Where:
 $$BA = a \cdot h^b \cdot \rho^c$$
 
 where:
-- $h$ = mean height of Canopy height Model (m)
+- $h$ = mean height of canopy height model (m)
 - $\rho$ = dry wood density of tree species
 - $a, b, c$ = regression coefficients 
 
 The coefficients were fitted to the following values:
 
-$$a = 2.1713,    b = 0.75521,    c = -0.71128$$
+$$a = 2.1713 \\ b = 0.75521 \\ c = -0.71128$$
 
 ---
 
