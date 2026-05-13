@@ -6,14 +6,14 @@ Working at the FORCE cube level as a unit base enables precise spatial alignment
 
 In ForestPulse, the following forest structure metrics are computed nationwide:
 
-| Metric | German Term |
-|---|---|
-| Canopy cover | Überschirmungsgrad |
-| Top height | Bestandesoberhöhe |
-| Vertical structure / layering | Bestandesschichtung |
-| Growing stock volume | Bestandesvorrat |
-| Biomass | Biomasse |
-| Basal Area | Grundfläche |
+| Metric | German Term | Unit |
+|---|---|---|
+| Canopy cover | Überschirmungsgrad | $\%$ |
+| Top height | Bestandesoberhöhe | $m$ |
+| Vertical structure / layering | Bestandesschichtung | (no unit) |
+| Growing stock volume | Bestandesvorrat | $m^3$ / $ha$ |
+| Biomass | Biomasse | $t$ / $ha$ |
+| Basal Area | Grundfläche | $m^2$ / $ha$ |
 
 ---
 
@@ -68,7 +68,7 @@ The **Vertical Complexity Index (VCI)** quantifies the evenness of LiDAR point d
 
 $$VCI = \frac{-\sum_{i=1}^{n} p_i \ln(p_i)}{\ln(n)}$$
 
-Where $p_i$ is the proportion of returns in height bin $i$, and $n$ is the total number of height bins (e.g. 1 m layers).
+Where $p_i$ is the proportion of returns in height bin $i$, and $n$ is the total number of height bins. In this case, 60 height bins of size 1 m were used. 
 
 - **VCI = 1**: returns evenly distributed across all layers (multi-layered canopy)
 - **VCI = 0**: returns concentrated in a single layer (uniform, single-storey stand)
@@ -79,55 +79,39 @@ VCI captures the 3D structural diversity of the forest. High VCI indicates multi
 
 ### 4. Growing Stock Volume (Bestandesvorrat)
 
-Growing stock volume (GSV) is defined as the total above-ground stem volume of living trees per unit land area (m³/ha). It is a fundamental forest inventory variable used to assess timber resources, carbon stocks, and stand productivity.
+Growing stock volume (GSV) is defined as the total above-ground stem volume of living trees per unit land area (m³/ha). 
 
-At tree level, stem volume is estimated from DBH and height using allometric taper equations. At stand level, GSV is the sum of individual tree volumes per hectare:
+At tree level, stem volume is estimated from DBH and height using allometric taper equations. 
 
-$$GSV_{stand} = \frac{\sum_{i=1}^{n} V_{tree,i}}{A}$$
+**LiDAR-based estimation:** GSV is estimated using the Area-Based Approach (ABA).  ALS-derived height metrics, as well as a wood density value which is derived from the species composition, serve as predictors in a parametric regression:
 
-Where:
-- $V_{tree,i}$ = stem volume of the $i$-th tree (m³), derived from allometric equations
-- $n$ = number of trees in the sampled area
-- $A$ = plot or pixel area (ha)
+$$GSV = a \cdot \bar{h} ^b \cdot \rho^c$$
 
-**LiDAR-based estimation:** GSV is estimated using the Area-Based Approach (ABA), where ALS-derived height and density metrics serve as predictors in a parametric regression calibrated against BWI field plot measurements:
+where:
+- $\bar{h}$ = mean height of Canopy height Model (m)
+- $\rho$ = dry wood density of tree species
+- $a, b, c$ = regression coefficients 
 
-$$GSV = a \cdot \bar{h}^b \cdot \rho^c$$
+Using data of the German National Forest Inventory (BWI, Bundeswaldinventur), the model coefficients were calibrated to these values:
 
-Where:
-- $\bar{h}$ = mean height of plot based on Canopy height Model (m)
-- $\rho$ = density of tree species
-- $a, b, c$ = regression coefficients calibrated from BWI plots
-
-In R, a typical pixel-level implementation is:
-
-```r
-GSV = 3.4838 * meanH^1.3921  * density^-0.76431
-```
-
-Coefficients are calibrated against BWI plot measurements.
-
+$$a = 3.4838, \ \ b = 1.3921, \ \ c = -0.76431$$
 
 ---
 
 ### 5. Above-Ground Biomass (Biomasse)
 
-The biomass model (`biomass_model`) is an area-based regression model estimating forest above-ground biomass (AGB, Mg/ha) from LiDAR metrics. A general linear form is:
+Above-Ground Biomass was calculated similarly to GSV, fitting a power law model from LiDAR metrics to BWI data. This formula:
 
-$$AGB = a \cdot \bar{h}^b \cdot \rho^c$$
+$$AGB = a \cdot \bar{h} ^b \cdot \rho^c$$
 
-Where:
-- $\bar{h}$ = mean height of plot based on Canopy height Model (m)
-- $\rho$ = density of tree species
-- $a, b, c$ = regression coefficients calibrated from BWI plots
+where:
+- $\bar{h}$ = mean height of Canopy height Model (m)
+- $\rho$ = dry wood density of tree species
+- $a, b, c$ = regression coefficients 
 
-In R, a typical pixel-level implementation is:
+was fitted to the following parameter values:
 
-```r
-
-AGB = 4.988 * meanH^1.343 * dens^0.3047
-
-```
+$$ a = 4.988, \ \ b = 1.343, \ \ c = 0.3047$$
 
 ---
 
@@ -141,30 +125,26 @@ $$BA_{tree} = \pi \times \left(\frac{DBH}{2}\right)^2$$
 
 Stand-level basal area is then:
 
-$$BA_{stand} = \frac{\sum_{i=1}^{n} BA_{tree,i}}{A}$$
+$$BA_{stand} = \frac{\sum_{i=1}^{n} BA_{i}}{A}$$
 
 Where:
 - $DBH$ = diameter at breast height (m)
 - $n$ = number of trees in the sampled area
+- $BA_{i} = BA_{tree} for the i-th tree
 - $A$ = plot or pixel area (ha)
 
-**LiDAR-based estimation:** Since LiDAR does not directly measure DBH, BA is estimated using the Area-Based Approach (ABA), a parametric regression model linking ALS-derived height and density metrics to field-measured BA from BWI reference plots:
+**LiDAR-based estimation:** BA is estimated using the Area-Based Approach (ABA). A parametric regression model links ALS-derived height and density metrics to field-measured BA from BWI reference plots:
 
 $$BA = a \cdot \bar{h}^b \cdot \rho^c$$
 
-Where:
-- $\bar{h}$ = mean height of plot based on Canopy height Model (m)
-- $\rho$ = density of tree species
-- $a, b, c$ = regression coefficients calibrated from BWI plots
+where:
+- $\bar{h}$ = mean height of Canopy height Model (m)
+- $\rho$ = dry wood density of tree species
+- $a, b, c$ = regression coefficients 
 
-In R, a typical pixel-level predictor set is computed as:
+The coefficients were fitted to the following values:
 
-```r
-BA = 2.1713 * meanH^0.75521 * dens^-0.71128
-
-```
-
-Coefficients are calibrated against BWI plot measurements.
+$$a = 2.1713, / / b = 0.75521, / / c = -0.71128$$
 
 ---
 
