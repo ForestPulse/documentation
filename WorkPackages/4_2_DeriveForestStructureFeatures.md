@@ -6,14 +6,14 @@ Working at the FORCE cube level as a unit base enables precise spatial alignment
 
 In ForestPulse, the following forest structure metrics are computed nationwide:
 
-| Metric | German Term | Unit |
+| Metric | German | Unit |
 |---|---|---|
-| Canopy cover | Überschirmungsgrad | $\%$ |
-| Top height | Bestandesoberhöhe | $m$ |
+| Canopy cover | Überschirmungsgrad | $%$ |
+| Top height | Bestandesoberhöhe | m |
 | Vertical structure / layering | Bestandesschichtung | (no unit) |
-| Growing stock volume | Bestandesvorrat | $m^3$ / $ha$ |
-| Biomass | Biomasse | $t$ / $ha$ |
-| Basal Area | Grundfläche | $m^2$ / $ha$ |
+| Growing stock volume | Bestandesvorrat | m$^3$ / ha |
+| Biomass | Biomasse | $t$ / ha |
+| Basal Area | Grundfläche | m$^2$ / ha |
 
 ---
 
@@ -85,16 +85,16 @@ At tree level, stem volume is estimated from DBH and height using allometric tap
 
 **LiDAR-based estimation:** GSV is estimated using the Area-Based Approach (ABA).  ALS-derived height metrics, as well as a wood density value which is derived from the species composition, serve as predictors in a parametric regression:
 
-$$GSV = a \cdot \bar{h} ^b \cdot \rho^c$$
+$$GSV = a \cdot h ^b \cdot \rho^c$$
 
 where:
-- $\bar{h}$ = mean height of Canopy height Model (m)
+- $h$ = mean height of Canopy height Model (m)
 - $\rho$ = dry wood density of tree species
 - $a, b, c$ = regression coefficients 
 
 Using data of the German National Forest Inventory (BWI, Bundeswaldinventur), the model coefficients were calibrated to these values:
 
-$$a = 3.4838, \ \ b = 1.3921, \ \ c = -0.76431$$
+$$a = 3.4838,    b = 1.3921,    c = -0.76431$$
 
 ---
 
@@ -102,16 +102,16 @@ $$a = 3.4838, \ \ b = 1.3921, \ \ c = -0.76431$$
 
 Above-Ground Biomass was calculated similarly to GSV, fitting a power law model from LiDAR metrics to BWI data. This formula:
 
-$$AGB = a \cdot \bar{h} ^b \cdot \rho^c$$
+$$AGB = a \cdot h ^b \cdot \rho^c$$
 
 where:
-- $\bar{h}$ = mean height of Canopy height Model (m)
+- $h$ = mean height of Canopy height Model (m)
 - $\rho$ = dry wood density of tree species
 - $a, b, c$ = regression coefficients 
 
 was fitted to the following parameter values:
 
-$$ a = 4.988, \ \ b = 1.343, \ \ c = 0.3047$$
+$$ a = 4.988,    b = 1.343,    c = 0.3047$$
 
 ---
 
@@ -130,21 +130,21 @@ $$BA_{stand} = \frac{\sum_{i=1}^{n} BA_{i}}{A}$$
 Where:
 - $DBH$ = diameter at breast height (m)
 - $n$ = number of trees in the sampled area
-- $BA_{i} = BA_{tree} for the i-th tree
+- $BA_{i} = BA_{tree}$ for the i-th tree
 - $A$ = plot or pixel area (ha)
 
 **LiDAR-based estimation:** BA is estimated using the Area-Based Approach (ABA). A parametric regression model links ALS-derived height and density metrics to field-measured BA from BWI reference plots:
 
-$$BA = a \cdot \bar{h}^b \cdot \rho^c$$
+$$BA = a \cdot h^b \cdot \rho^c$$
 
 where:
-- $\bar{h}$ = mean height of Canopy height Model (m)
+- $h$ = mean height of Canopy height Model (m)
 - $\rho$ = dry wood density of tree species
 - $a, b, c$ = regression coefficients 
 
 The coefficients were fitted to the following values:
 
-$$a = 2.1713, / / b = 0.75521, / / c = -0.71128$$
+$$a = 2.1713,    b = 0.75521,    c = -0.71128$$
 
 ---
 
