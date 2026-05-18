@@ -19,7 +19,7 @@ In ForestPulse, the following forest structure metrics are computed nationwide:
 
 ## Forest Metrics
 
-### 1. Canopy Cover (Überschirmungsgrad)
+### 1. Point-based Canopy Cover (Überschirmungsgrad)
 
 Canopy cover (CC, also crown closure) is defined as the percentage of ground
 covered by individual tree crowns, measured as the vertical projection onto a
@@ -115,7 +115,7 @@ $$ a = 4.988,    b = 1.343,    c = 0.3047$$
 
 ---
 
-### 5. Basal Area (Grundfläche)
+### 6. Basal Area (Grundfläche)
 
 Basal area (BA) is defined as the cross-sectional area of a tree stem at breast height (1.3 m above ground). At stand level, it is expressed as the sum of all stem cross-sectional areas per unit land area (m²/ha). It is a widely used measure of stand density and stocking, closely related to timber volume and productivity.
 
@@ -147,6 +147,39 @@ The coefficients were fitted to the following values:
 $$a = 2.1713, b = 0.75521, c = -0.71128$$
 
 ---
+
+### 7 Maximum Height (Maximalhöhe)
+
+The variable "maxH" shows the height of the highest point whose lidar-footprint lies in the given pixel. Since outliers were removed in the preprocessing, it can be assumed to show the height of the highest vegetaion or building.
+ 
+---
+
+### 8. Mean Top of Canpoy Heigt (Mittlere Höhe)
+
+The variable "meanH" shows the mean height of a canopy height model (CHM).
+The CHM with 0.5 m resolution was calulated from a las point cloud with R and lidR as follows:
+
+```{r}
+chm <- lidR::rasterize_canopy(las, 
+								res = 0.5, 
+								algorithm = p2r( subcircle = 0.25))
+```
+
+The variable "meanH" is then calculated as the mean height of all CHM pixels in a given raster cell.
+
+While the variable itself is not of major interest for forestry practicioners, it serves as an important input for modeling other variables (see 4., 5. and 6.). 
+
+---
+
+### 9. Raster-based Canopy Cover (Überschirmungsgrad)
+
+The variables "over02", "over05" and "over20" are also representations for canopy cover (see 1.). As opposed to the point-based canopy cover value, these values are calculated based on a canopy height model (CHM). 
+The CHM with 0.5 m resolution is calculated as detailed above (8.).
+Now, each 10 m x 10 m raster cell cotains 400 CHM pixels. The canopy cover is then calculated as the fraction of these pixels above a certain height threshold. Products for three different height thresholds are included: 2 m ("over02"), 5 m ("over05") and 20 m ("over20"). 
+In accordance with Jennings et al. 1999, the height threshold of 2 m best represents the forester's understanding of canopy cover.
+
+--- 
+
 
 ## References
 
